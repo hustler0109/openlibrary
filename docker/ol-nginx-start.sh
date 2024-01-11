@@ -1,7 +1,21 @@
 #!/bin/bash
 
-if [ -d "/etc/letsencrypt/live/$NGINX_DOMAIN" ] ; then
-    certbot certonly --webroot --webroot-path /openlibrary/static -d $NGINX_DOMAIN
+# Initialize an empty string for the certbot options
+certbot_options=""
+
+RUN_CERTBOT=0
+
+# Iterate through the NGINX_DOMAIN variable and construct the certbot options
+for domain in $NGINX_DOMAIN; do
+  certbot_options+=" -d $domain"
+  if [ -d "/etc/letsencrypt/live/$domain" ]; then
+    RUN_CERTBOT=1
+  fi
+done
+
+# Check if certbot_options is not empty before executing certbot
+if [ "$RUN_CERTBOT" -eq 1 ]; then
+  certbot certonly --webroot --webroot-path /openlibrary/static $certbot_options
 fi
 
 if [ -n "$CRONTAB_FILES" ] ; then
